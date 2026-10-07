@@ -1,7 +1,50 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>The Jev Man</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="jevman">
+    <h1>
+        <span>The</span>
+        <span>Jev</span>
+        <span>Man</span>
+    </h1>
 
-Welcome to your new app.
+    <label class="question-label" for="question">Ask a question</label>
+    <input id="question"
+           class="question-input"
+           type="text"
+           placeholder="What would you like to ask?"
+           @bind="question" />
+
+    <div class="alternatives">
+        <h2>Response alternatives</h2>
+
+        @for (var i = 0; i < alternatives.Count; i++)
+        {
+            <div class="alternative">
+                <input type="text"
+                       placeholder="Alternative @(i + 1)"
+                       @bind="alternatives[i]" />
+                <button type="button" class="remove" title="Remove" @onclick="() => RemoveAlternative(i)">×</button>
+            </div>
+        }
+    </div>
+
+    <button type="button" class="add" title="Add alternative" @onclick="AddAlternative">+</button>
+</div>
+
+@code {
+    private string question = "";
+
+    private List<string> alternatives = new();
+
+    private void AddAlternative()
+    {
+        alternatives.Add("");
+    }
+
+    private void RemoveAlternative(int index)
+    {
+        alternatives.RemoveAt(index);
+    }
+}
