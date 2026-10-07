@@ -25,11 +25,12 @@
 
         @for (var i = 0; i < alternatives.Count; i++)
         {
+            var index = i;
             <div class="alternative">
                 <input type="text"
-                       placeholder="Alternative @(i + 1)"
-                       @bind="alternatives[i]" />
-                <button type="button" class="remove" title="Remove" @onclick="() => RemoveAlternative(i)">×</button>
+                       placeholder="Alternative @(index + 1)"
+                       @bind="alternatives[index]" />
+                <button type="button" class="remove" title="Remove" @onclick="() => RemoveAlternative(index)">×</button>
             </div>
         }
     </div>
