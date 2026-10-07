@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject HttpClient Http
 
 <PageTitle>The Jev Man</PageTitle>
 
@@ -15,6 +16,8 @@
            type="text"
            placeholder="What would you like to ask?"
            @bind="question" />
+
+    <button type="button" class="decide" @onclick="Decide">Decide</button>
 
     <div class="alternatives">
         <h2>Add an outcome</h2>
@@ -46,5 +49,10 @@
     private void RemoveAlternative(int index)
     {
         alternatives.RemoveAt(index);
+    }
+
+    private async Task Decide()
+    {
+        await Http.PostAsJsonAsync("api/decide", new { question, alternatives });
     }
 }
