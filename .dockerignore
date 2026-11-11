@@ -1,0 +1,20 @@
+# .NET build artifacts
+**/bin/
+**/obj/
+
+# Node
+**/node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Local settings (secrets)
+Api/local.settings.json
+
+# Docs / IDE
+.vs/
+.idea/
+.vscode/
+*.md
+Dockerfile

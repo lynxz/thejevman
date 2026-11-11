@@ -1,47 +1,92 @@
 ﻿@page "/"
 @inject HttpClient Http
-@inject IJSRuntime JS
 
 <PageTitle>The Jev Man</PageTitle>
 
 <div class="jevman">
+    <p class="tagline">Have you not decided enough for yourself</p>
+
     <h1>
         <span>The</span>
         <span>Jev</span>
         <span>Man</span>
     </h1>
 
-    <label class="question-label" for="question">Seek guidance</label>
-    <input id="question"
-           class="question-input"
-           type="text"
-           placeholder="What would you like to ask?"
-           @bind="question" />
+    <div class="@InputCssClass">
+        <label class="question-label" for="question">Seek guidance</label>
+        <input id="question"
+               class="question-input"
+               type="text"
+               placeholder="What would you like to ask?"
+               @bind="question" />
 
-    <button type="button" class="decide" @onclick="Decide">Decide</button>
+        <button type="button" class="decide" @onclick="Decide" disabled="@deciding">Decide</button>
 
-    <div class="alternatives">
-        <h2>Add an outcome</h2>
+        <div class="alternatives">
+            <h2>Add an outcome</h2>
 
-        @for (var i = 0; i < alternatives.Count; i++)
-        {
-            var index = i;
-            <div class="alternative">
-                <input type="text"
-                       placeholder="Alternative @(index + 1)"
-                       @bind="alternatives[index]" />
-                <button type="button" class="remove" title="Remove" @onclick="() => RemoveAlternative(index)">×</button>
-            </div>
-        }
+            @for (var i = 0; i < alternatives.Count; i++)
+            {
+                var index = i;
+                <div class="alternative">
+                    <input type="text"
+                           placeholder="Alternative @(index + 1)"
+                           @bind="alternatives[index]" />
+                    <button type="button" class="remove" title="Remove" @onclick="() => RemoveAlternative(index)">×</button>
+                </div>
+            }
+        </div>
+
+        <button type="button" class="add" title="Add alternative" @onclick="AddAlternative">+</button>
     </div>
 
-    <button type="button" class="add" title="Add alternative" @onclick="AddAlternative">+</button>
+    @if (result is not null)
+    {
+        <div class="@ResultCssClass">
+            <p class="result-choice">@result.Choice</p>
+
+            @foreach (var alternative in alternatives)
+            {
+                var probability = result.Probabilities is not null &&
+                                  result.Probabilities.TryGetValue(alternative.Trim(), out var p)
+                    ? p
+                    : 0;
+
+                <div class="result-row">
+                    <span class="result-label">@alternative</span>
+                    <div class="result-bar">
+                        <div class="result-bar-fill" style="width:@(probability * 100)%"></div>
+                    </div>
+                    <span class="result-percent">@((probability * 100).ToString("0"))%</span>
+                </div>
+            }
+
+            <p class="confidence-label">Overall confidence</p>
+            <div class="result-row">
+                <span class="result-label"></span>
+                <div class="result-bar">
+                    <div class="result-bar-fill" style="width:@(result.Confidence * 100)%"></div>
+                </div>
+                <span class="result-percent">@((result.Confidence * 100).ToString("0"))%</span>
+            </div>
+
+            <button type="button" class="query-again" @onclick="Reset">Query Again</button>
+        </div>
+    }
 </div>
 
 @code {
     private string question = "";
 
     private List<string> alternatives = new();
+
+    private DecideResult? result;
+
+    private bool deciding;
+
+    private string InputCssClass => result is null ? "inputs visible" : "inputs hidden";
+
+    private string ResultCssClass => result is not null ? "result shown" : "result";
 
     private void AddAlternative()
     {
@@ -53,10 +98,35 @@
         alternatives.RemoveAt(index);
     }
 
+    private void Reset()
+    {
+        result = null;
+        question = "";
+        alternatives = new();
+    }
+
     private async Task Decide()
     {
-        var response = await Http.PostAsJsonAsync("api/decide", new { question, alternatives });
-        var json = await response.Content.ReadAsStringAsync();
-        await JS.InvokeVoidAsync("console.log", json);
+        deciding = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/decide", new { question, alternatives });
+            result = await response.Content.ReadFromJsonAsync<DecideResult>();
+        }
+        finally
+        {
+            deciding = false;
+        }
+    }
+
+    public class DecideResult
+    {
+        public string? Type { get; set; }
+
+        public string? Choice { get; set; }
+
+        public double Confidence { get; set; }
+
+        public Dictionary<string, double>? Probabilities { get; set; }
     }
 }

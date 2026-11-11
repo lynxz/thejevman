@@ -14,6 +14,10 @@ builder.Configuration.AddJsonFile(
     optional: true,
     reloadOnChange: true);
 
+// Environment variables must be added after appsettings.json so that values
+// like Jev__ApiKey passed to the container override the committed placeholder.
+builder.Configuration.AddEnvironmentVariables();
+
 builder.ConfigureFunctionsWebApplication();
 
 if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
