@@ -68,6 +68,16 @@
     background-color: rgba(227, 227, 227, 0.1);
 }
 
+.decide:disabled {
+    border-color: #4a4a4a;
+    color: #4a4a4a;
+    cursor: not-allowed;
+}
+
+.decide:disabled:hover {
+    background-color: transparent;
+}
+
 .alternatives {
     margin-bottom: 1rem;
 }

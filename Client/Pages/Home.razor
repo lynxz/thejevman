@@ -97,9 +97,12 @@
     }
 
     [JSInvokable]
-    public static void HandleAlternativePaste(int index, string text)
+    public static async Task HandleAlternativePaste(int index, string text)
     {
-        Current?.ApplyPaste(index, text);
+        if (Current is { } current)
+        {
+            await current.InvokeAsync(() => current.ApplyPaste(index, text));
+        }
     }
 
     private void ApplyPaste(int index, string text)
