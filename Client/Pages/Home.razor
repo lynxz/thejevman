@@ -20,7 +20,7 @@
                placeholder="What would you like to ask?"
                @bind="question" />
 
-        <button type="button" class="decide" @onclick="Decide" disabled="@deciding">Decide</button>
+        <button type="button" class="decide" @onclick="Decide" disabled="@(deciding || !CanDecide)">Decide</button>
 
         <div class="alternatives">
             <h2>Add an outcome</h2>
@@ -78,11 +78,15 @@
 @code {
     private string question = "";
 
-    private List<string> alternatives = new();
+    private List<string> alternatives = new() { "" };
 
     private DecideResult? result;
 
     private bool deciding;
+
+    private bool CanDecide =>
+        !string.IsNullOrWhiteSpace(question) &&
+        alternatives.Any(a => !string.IsNullOrWhiteSpace(a));
 
     private string InputCssClass => result is null ? "inputs visible" : "inputs hidden";
 
@@ -102,7 +106,7 @@
     {
         result = null;
         question = "";
-        alternatives = new();
+        alternatives = new() { "" };
     }
 
     private async Task Decide()
