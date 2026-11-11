@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject HttpClient Http
+@inject IJSRuntime Js
 
 <PageTitle>The Jev Man</PageTitle>
 
@@ -29,9 +30,11 @@
             {
                 var index = i;
                 <div class="alternative">
-                    <input type="text"
+                    <input id="alt-@index"
+                           type="text"
                            placeholder="Alternative @(index + 1)"
-                           @bind="alternatives[index]" />
+                           @bind="alternatives[index]"
+                           @onkeydown="e => OnAlternativeKeyDown(index, e)" />
                     <button type="button" class="remove" title="Remove" @onclick="() => RemoveAlternative(index)">×</button>
                 </div>
             }
@@ -84,6 +87,38 @@
 
     private bool deciding;
 
+    private int? focusIndex;
+
+    private static Home? Current;
+
+    protected override void OnInitialized()
+    {
+        Current = this;
+    }
+
+    [JSInvokable]
+    public static void HandleAlternativePaste(int index, string text)
+    {
+        Current?.ApplyPaste(index, text);
+    }
+
+    private void ApplyPaste(int index, string text)
+    {
+        var lines = text.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
+
+        if (lines.Count > 1 && lines[^1].Length == 0)
+        {
+            lines.RemoveAt(lines.Count - 1);
+        }
+
+        alternatives[index] = lines[0];
+
+        for (var i = 1; i < lines.Count; i++)
+        {
+            alternatives.Insert(index + i, lines[i]);
+        }
+    }
+
     private bool CanDecide =>
         !string.IsNullOrWhiteSpace(question) &&
         alternatives.Any(a => !string.IsNullOrWhiteSpace(a));
@@ -100,6 +135,24 @@
     private void RemoveAlternative(int index)
     {
         alternatives.RemoveAt(index);
+    }
+
+    private void OnAlternativeKeyDown(int index, KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && index == alternatives.Count - 1)
+        {
+            alternatives.Add("");
+            focusIndex = alternatives.Count - 1;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (focusIndex is int idx)
+        {
+            focusIndex = null;
+            await Js.InvokeVoidAsync("focusAlternative", $"alt-{idx}");
+        }
     }
 
     private void Reset()

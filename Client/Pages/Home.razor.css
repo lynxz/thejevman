@@ -46,7 +46,7 @@
 }
 
 .question-input:focus {
-    border-color: #258cfb;
+    border-color: #e3e3e3;
     outline: none;
 }
 
@@ -100,7 +100,7 @@
 }
 
 .alternative input:focus {
-    border-color: #258cfb;
+    border-color: #e3e3e3;
     outline: none;
 }
 
